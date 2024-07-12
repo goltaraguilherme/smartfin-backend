@@ -31,3 +31,5 @@ connectToDatabase()
         process.exit();
     })
 
+export default app;
+
