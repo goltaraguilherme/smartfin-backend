@@ -16,11 +16,12 @@ app.get('/', async (req: Request, res: Response) => {
     res.send("Smartfin Backend")
 });
 
+app.use("/utils", authMiddleware, utilsRouter)
+
 connectToDatabase()
     .then(() => {
         app.use(cors())
         app.use("/users", userRouter);
-        app.use("/utils", authMiddleware, utilsRouter)
 
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`)
