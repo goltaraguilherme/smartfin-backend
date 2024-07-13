@@ -6,7 +6,14 @@ export const collections: {users?: mongoDB.Collection } = {}
 export async function connectToDatabase() {
     dotenv.config();
 
-    const client: mongoDB.MongoClient = new mongoDB.MongoClient(<string>process.env.STRING_CONNECT_ATLAS_MONGODB);
+    const client: mongoDB.MongoClient = new mongoDB.MongoClient(
+            <string>process.env.STRING_CONNECT_ATLAS_MONGODB,{
+            serverApi: {
+              version: mongoDB.ServerApiVersion.v1,
+              strict: true,
+              deprecationErrors: true,
+            }
+          });
 
     await client.connect();
 
