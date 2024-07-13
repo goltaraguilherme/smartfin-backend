@@ -16,11 +16,11 @@ app.get('/', async (req: Request, res: Response) => {
     res.send("Smartfin Backend")
 });
 
+app.use(cors())
 app.use("/utils", authMiddleware, utilsRouter)
 
 connectToDatabase()
     .then(() => {
-        app.use(cors())
         app.use("/users", userRouter);
 
         app.listen(port, () => {
