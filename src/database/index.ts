@@ -18,7 +18,7 @@ async function connectToDatabase() {
 
         await client.connect();
 
-        const db = client.db(<string>process.env.DB_NAME);
+        const db: mongoDB.Db = client.db(<string>process.env.DB_NAME);
 
         console.log("Db connect successfully")
 
@@ -29,7 +29,8 @@ async function connectToDatabase() {
     }
 }
 
-let db = connectToDatabase();
+//@ts-ignore
+let db: mongoDB.Db = connectToDatabase();
 
 export default db;
 

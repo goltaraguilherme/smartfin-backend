@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { Collection, ObjectId } from "mongodb";
 import db from "../database/index";
-import { collections } from "../database/index";
 import * as jwt from "jsonwebtoken";
 import * as dotenv from "dotenv";
 import * as bcrypt from "bcrypt";
@@ -21,7 +20,7 @@ userRouter.use(express.json());
 
 userRouter.get("/", async (req: Request, res: Response) => {
     try{
-        let collection: Collection = await db.collections("users");
+        let collection: Collection = await db.collection("users");
         //@ts-ignore
         const users = (await collection.find({}).toArray()) as User[];
 
@@ -38,7 +37,7 @@ userRouter.get("/:id", async (req: Request, res: Response) => {
     try {
         
         const query = { _id: new ObjectId(id) };
-        let collection: Collection = await db.collections("users");
+        let collection: Collection = await db.collection("users");
         //@ts-ignore
         const user = (await collection.findOne(query)) as User;
 
@@ -53,7 +52,7 @@ userRouter.get("/:id", async (req: Request, res: Response) => {
 userRouter.post("/register", async (req: Request, res: Response) => {
     const { email } = req.body;
     try {
-        let collection: Collection = await db.collections("users");
+        let collection: Collection = await db.collection("users");
         if(await collection.findOne({email}))
             return res.status(400).send( {err : "User already exist."})
 
@@ -78,7 +77,7 @@ userRouter.post("/register", async (req: Request, res: Response) => {
 
 userRouter.post('/authenticate', async (req: Request, res: Response) => {
     const { email, password } = req.body;
-    let collection: Collection = await db.collections("users");
+    let collection: Collection = await db.collection("users");
     //@ts-ignore
     const user = await collection.findOne({ email });
 
@@ -100,7 +99,7 @@ userRouter.delete('/delete_user/:id', async (req: Request, res: Response) => {
     try{
         //@ts-ignore
         const { id }  = req?.params?.id;
-        let collection: Collection = await db.collections("users");
+        let collection: Collection = await db.collection("users");
         
         //@ts-ignore
         await collection.findOneAndDelete({_id: id})
