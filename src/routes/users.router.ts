@@ -20,9 +20,8 @@ userRouter.use(express.json());
 
 userRouter.get("/", async (req: Request, res: Response) => {
     try{
-        let collection: Collection = await db.collection("users");
-        //@ts-ignore
-        const users = (await collection.find({}).toArray()) as User[];
+        let collection: Collection = await db.collection("Users");
+        const users = (await collection.find({}).toArray());
 
         res.status(200).send(users);
     }catch(err){
@@ -37,7 +36,7 @@ userRouter.get("/:id", async (req: Request, res: Response) => {
     try {
         
         const query = { _id: new ObjectId(id) };
-        let collection: Collection = await db.collection("users");
+        let collection: Collection = await db.collection("Users");
         //@ts-ignore
         const user = (await collection.findOne(query)) as User;
 
@@ -52,7 +51,7 @@ userRouter.get("/:id", async (req: Request, res: Response) => {
 userRouter.post("/register", async (req: Request, res: Response) => {
     const { email } = req.body;
     try {
-        let collection: Collection = await db.collection("users");
+        let collection: Collection = await db.collection("Users");
         if(await collection.findOne({email}))
             return res.status(400).send( {err : "User already exist."})
 
@@ -76,30 +75,36 @@ userRouter.post("/register", async (req: Request, res: Response) => {
 });
 
 userRouter.post('/authenticate', async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    let collection: Collection = await db.collection("users");
-    //@ts-ignore
-    const user = await collection.findOne({ email });
+    try {
+        const { email, password } = req.body;
+        let collection = await db.collection("Users");
+        const user = await collection.findOne({ email });
+    
+        if(!user)
+            return res.status(404).send({ error: 'User not found'});
+    
+        if(!await bcrypt.compare(password, user.password))
+            return res.status(400).send({ error: 'Invalid password'});
+    
+        user.password = undefined;
+    
+        res.send({ 
+          user,
+          token: generateToken( {id: user.id} ),
+         });
+    } catch (error) {
+        console.error(error)
+        //@ts-ignore
+        res.status(500).send(error.message)
+    }
 
-    if(!user)
-        return res.status(404).send({ error: 'User not found'});
-
-    if(!await bcrypt.compare(password, user.password))
-        return res.status(400).send({ error: 'Invalid password'});
-
-    user.password = undefined;
-
-    res.send({ 
-      user,
-      token: generateToken( {id: user.id} ),
-     });
 });
 
 userRouter.delete('/delete_user/:id', async (req: Request, res: Response) => {
     try{
         //@ts-ignore
         const { id }  = req?.params?.id;
-        let collection: Collection = await db.collection("users");
+        let collection: Collection = await db.collection("Users");
         
         //@ts-ignore
         await collection.findOneAndDelete({_id: id})
