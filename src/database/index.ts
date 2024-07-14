@@ -16,7 +16,9 @@ const client: mongoDB.MongoClient = new mongoDB.MongoClient(
 async function connectToDatabase() {
 
     try {
-        await client.connect();
+        await client.connect().catch(e => {
+            throw new Error('error caught from client connect', { cause: e })
+        });
 
         await client.db(<string>process.env.DB_NAME).command({ping:1});
 
