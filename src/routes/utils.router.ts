@@ -1,4 +1,7 @@
 import express, { Request, Response } from "express";
+import { Collection, ObjectId } from "mongodb";
+import db from "../database/index";
+
 import yahooFinance from "yahoo-finance2";
 
 export const utilsRouter = express.Router();
@@ -14,6 +17,34 @@ utilsRouter.post("/spread", async (req: Request, res: Response) => {
         
         res.send({ativoA: resultAtivoA, ativoB: resultAtivoB})
     } catch (error) {
-        res.status(404).send("Erro ao buscar os dados dos ativos. Tente novamente mais tare")
+        res.status(404).send("Erro ao buscar os dados dos ativos. Confira os dados enviados ou tente novamente mais tarde.")
+    }
+})
+
+utilsRouter.post("/comments", async (req: Request, res: Response) => {
+    try {
+        const { userEmail } = req.body;
+
+        let collectionComments: Collection = await db.collection("Comments");
+
+        let collectionUsers: Collection = await db.collection("Users");
+
+        const user = await collectionUsers.findOne({email: userEmail})
+
+        const newCommentData = {
+            comment: req.body.comment,
+            type: req.body.type,
+            userId: user?._id,
+            date: new Date()
+        }
+
+        const newComment = await collectionComments.insertOne(newCommentData);
+        
+        return res.send( {
+            newComment,
+        })
+        
+    } catch (error) {
+        res.status(500).send("Erro ao realizar comentário. Tente novamente mais tarde.")
     }
 })

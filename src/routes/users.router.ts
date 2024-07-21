@@ -4,6 +4,8 @@ import db from "../database/index";
 import * as jwt from "jsonwebtoken";
 import * as dotenv from "dotenv";
 import * as bcrypt from "bcrypt";
+import * as crypto from "crypto";
+import * as mailer from "../modules/mailer";
 import User from "../models/user";
 
 dotenv.config();
@@ -57,7 +59,18 @@ userRouter.post("/register", async (req: Request, res: Response) => {
 
         req.body.password = await bcrypt.hash(req.body.password, 10);
 
-        const user = await collection.insertOne(req.body);
+        const user = await collection.insertOne({
+            name: req.body.name,
+            email: req.body.email,
+            telephone: req.body.telephone,
+            corretora: req.body.corretora,
+            password: req.body.password,
+            plan: req.body.plan,
+            dateFinal: "",
+            typeUser: "Premium",
+            passwordResetExpires: "",
+            passwordResetToken: ""
+        });
         
         //@ts-ignore
         user.password = undefined;
@@ -99,6 +112,80 @@ userRouter.post('/authenticate', async (req: Request, res: Response) => {
     }
 
 });
+
+userRouter.post('/forgot_password', async (req: Request, res: Response) => {
+    const {email} = req.body;
+    try {
+        let userCollection: Collection = await db.collection("Users");
+
+        const user = await userCollection.findOne({ email })
+        if(!user)
+            return res.status(400).send({err: 'Usuário não encontrado'})
+
+        const token = crypto.randomBytes(4).toString('hex')
+        const nome = user.name
+        const now = new Date()
+        now.setHours(now.getHours() + 1)
+
+        await userCollection.updateOne({email}, {
+            '$set': {
+                passwordResetToken: token,
+                passwordResetExpires: now,
+            }
+        })
+
+        //@ts-ignore
+        await mailer.default.sendMail({
+            to: email,
+            from: 'mvpsmartfintemp@gmail.com',
+            template: 'auth/forgot_password',
+            subject: 'Troca de senha',
+            context: {token, nome},
+        }, (err:any) => {
+            console.log(err)
+            if(err)
+                return res.status(400).send({err: 'Não foi possível enviar o email. Tente novamente.'})
+        })
+        return res.send('Email com chave para troca de senha enviado')
+    } catch (error) {
+        res.status(400).send({err: 'Tente novamente em instantes.'})
+    }
+})
+
+userRouter.post('/reset_password', async (req: Request, res: Response) => {
+    const { email, token, password } = req.body
+    let userCollection: Collection = await db.collection("Users");
+
+    try {
+        const user = await userCollection.findOne({email})
+        
+        if(!user){
+            return res.status(400).send({err: 'Usuário não encontrado'})
+        }
+        //@ts-ignore
+        delete user._id;
+
+        if(token !== user.passwordResetToken)
+            return res.status(400).send({ err: 'Chave inválida'})
+
+        const now = new Date()
+
+        if(now > user.passwordResetExpires)
+            return res.status(400).send({err: 'Chave expirada. Por favor, gere uma nova e tente novamente.'})
+    
+    user.password = await bcrypt.hash(password, 10);
+
+    await userCollection.updateOne({email}, {
+        "$set": {
+            password: user.password
+        }
+    })
+
+    return res.send('Senha alterada com sucesso')
+    } catch (error) {
+        res.status(400).send({err: 'Tente novamente em instantes.'})
+    }
+})
 
 userRouter.delete('/delete_user/:id', async (req: Request, res: Response) => {
     try{
