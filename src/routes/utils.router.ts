@@ -44,6 +44,10 @@ utilsRouter.post("/comments", async (req: Request, res: Response) => {
         const user = await collectionUsers.findOne({email: userEmail})
 
         const newCommentData = {
+            //@ts-ignore
+            name: user.name,
+            //@ts-ignore
+            email: user.email,
             comment: req.body.comment,
             type: req.body.type,
             userId: user?._id,
