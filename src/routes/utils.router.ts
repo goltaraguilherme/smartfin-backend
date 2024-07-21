@@ -21,6 +21,18 @@ utilsRouter.post("/spread", async (req: Request, res: Response) => {
     }
 })
 
+utilsRouter.get("/list_comments", async (req: Request, res: Response) => {
+    try {
+        let collectionComments: Collection = await db.collection("Comments");
+        const comments = await collectionComments.find({}).toArray()
+
+        return res.send(comments);
+        
+    } catch (error) {
+        res.status(500).send("Erro ao realizar comentário. Tente novamente mais tarde.")
+    }
+})
+
 utilsRouter.post("/comments", async (req: Request, res: Response) => {
     try {
         const { userEmail } = req.body;
