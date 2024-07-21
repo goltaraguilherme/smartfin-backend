@@ -59,6 +59,9 @@ userRouter.post("/register", async (req: Request, res: Response) => {
 
         req.body.password = await bcrypt.hash(req.body.password, 10);
 
+        const now = new Date()
+        now.setDate(now.getDate() + 1)
+
         const user = await collection.insertOne({
             name: req.body.name,
             email: req.body.email,
@@ -66,7 +69,7 @@ userRouter.post("/register", async (req: Request, res: Response) => {
             corretora: req.body.corretora,
             password: req.body.password,
             plan: req.body.plan,
-            dateFinal: "",
+            dateFinal: now,
             typeUser: "Premium",
             passwordResetExpires: "",
             passwordResetToken: ""
