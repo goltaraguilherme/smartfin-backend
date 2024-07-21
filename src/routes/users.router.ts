@@ -50,7 +50,7 @@ userRouter.get("/:id", async (req: Request, res: Response) => {
     }
 });
 
-userRouter.get("/edit_user", async (req: Request, res: Response) => {
+userRouter.post("/edit_user", async (req: Request, res: Response) => {
     const { email, plan, dateFinal } = req.body;
 
     try {
