@@ -50,6 +50,27 @@ userRouter.get("/:id", async (req: Request, res: Response) => {
     }
 });
 
+userRouter.get("/edit_user", async (req: Request, res: Response) => {
+    const { email, plan, dateFinal } = req.body;
+
+    try {
+        let userCollection = await db.collection("Users");
+        //@ts-ignore
+        const user = await userCollection.updateOne({email}, {
+            "$set": {
+                plan,
+                dateFinal
+            }
+        });
+
+        if (user) {
+            res.status(200).send(user);
+        }
+    } catch (error) {
+        res.status(404).send(`Unable to find matching document with id: ${req.params.id}`);
+    }
+});
+
 userRouter.post("/register", async (req: Request, res: Response) => {
     const { email } = req.body;
     try {
