@@ -12,7 +12,7 @@ dotenv.config();
 
 function generateToken(params = {}) {
     return jwt.sign(params, <string>process.env.SECRET_JWT, {
-        expiresIn: 24*60*60, //24horas * 60min * 60s
+        expiresIn: 30*24*60*60, //30dias * 24horas * 60min * 60s
     });
 }
 
