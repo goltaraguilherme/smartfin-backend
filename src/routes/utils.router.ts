@@ -13,13 +13,14 @@ utilsRouter.post("/spread", async (req: Request, res: Response) => {
         const { ativoA, ativoB, initDate, finalDate } = req.body;
         const queryOptions = { period1: initDate, period2: finalDate /* ... */ };
         console.log(queryOptions)
-        const resultAtivoA = await yahooFinance.historical(ativoA+".SA", queryOptions);
-        console.log("A: "+resultAtivoA)
-        const resultAtivoB = await yahooFinance.historical(ativoB+".SA", queryOptions);
-        console.log("B: "+resultAtivoB)
+        const resultAtivoA = await yahooFinance.chart(ativoA+".SA", queryOptions);
+        console.log("A: "+resultAtivoA.quotes)
+        const resultAtivoB = await yahooFinance.chart(ativoB+".SA", queryOptions);
+        console.log("B: "+resultAtivoB.quotes)
         
-        res.send({ativoA: resultAtivoA, ativoB: resultAtivoB})
+        res.send({ativoA: resultAtivoA.quotes, ativoB: resultAtivoB.quotes})
     } catch (error) {
+        console.log(error)
         res.status(404).send("Erro ao buscar os dados dos ativos. Confira os dados enviados ou tente novamente mais tarde.")
     }
 })
