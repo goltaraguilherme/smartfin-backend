@@ -122,6 +122,9 @@ userRouter.post('/authenticate', async (req: Request, res: Response) => {
     
         if(!await bcrypt.compare(password, user.password))
             return res.status(400).send({ error: 'Invalid password'});
+
+        if(user.typeUser == "Premium" && new Date(user.dateFinal) < new Date())
+            return res.status(400).send({ error: 'Assinatura expirada. Contate o administrador para renovação.'})
     
         user.password = undefined;
     
